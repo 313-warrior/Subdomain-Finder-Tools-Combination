@@ -30,8 +30,8 @@ read -e -p "Enter the target domain: " targetDomain
 # Remove any leading or trailing whitespace
 targetDomain=$(echo "$targetDomain" | xargs)
 
-# Create output directory named exactly as the target domain
-output_dir="$targetDomain"
+# Define output directory in the current user's Desktop folder
+output_dir="$HOME/Desktop/$targetDomain"
 mkdir -p "$output_dir"
 
 # Start the subdomain enumeration tools in the background
