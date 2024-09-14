@@ -30,9 +30,9 @@ read -e -p "Enter the target domain: " targetDomain
 # Remove any leading or trailing whitespace
 targetDomain=$(echo "$targetDomain" | xargs)
 
-# Define output directory in the current user's Desktop folder
+# Create output directory named exactly as the target domain
 output_dir="$HOME/Desktop/$targetDomain"
-mkdir -p "$output_dir"
+mkdir -p "$output_dir/Desktop"
 
 # Start the subdomain enumeration tools in the background
 (subfinder -d $targetDomain -silent; assetfinder --subs-only $targetDomain) > "$output_dir/combined_subdomains.txt" &
@@ -45,6 +45,9 @@ loading_animation $pid_enum "Finding Subdomains..."
 sort "$output_dir/combined_subdomains.txt" | uniq > "$output_dir/sorted_combined_subdomains.txt"
 mv "$output_dir/sorted_combined_subdomains.txt" "$output_dir/combined_subdomains.txt"
 
+# Count the number of subdomains found
+total_subdomains=$(wc -l < "$output_dir/combined_subdomains.txt")
+
 # Run httprobe to check which subdomains are live
 echo "Start Checking Live Subdomains...." | lolcat
 (cat "$output_dir/combined_subdomains.txt" | httprobe > "$output_dir/live_subdomains.txt") &
@@ -53,12 +56,16 @@ pid_probe=$!
 # Display loading animation for live subdomain checking
 loading_animation $pid_probe "Checking Live Subdomains..."
 
+# Count the number of live subdomains
+live_subdomains=$(wc -l < "$output_dir/live_subdomains.txt")
+
 # Remove the combined_subdomains.txt file after checking live subdomains
 rm "$output_dir/combined_subdomains.txt"
 
 # Rename live_subdomains.txt to target domain name
 mv "$output_dir/live_subdomains.txt" "$output_dir/$targetDomain.txt"
 
-# Display completion message
+# Display completion message with subdomain counts
 echo "Subdomain Finding and Live Subdomain Checking completed." | lolcat
-echo "Live subdomains saved to $output_dir/$targetDomain.txt" | lolcat
+echo "Total subdomains found: $total_subdomains" | lolcat
+echo "Total Active subdomains found: $live_subdomains" | lolcat
